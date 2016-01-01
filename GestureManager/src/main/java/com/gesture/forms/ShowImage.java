@@ -20,14 +20,12 @@ public class ShowImage extends JPanel{
 		setBounds(3, 10, 434, 277);
 		
 		lblImage = new JLabel("Press Start to load camera stream");
-		lblImage.setBounds(10, 22, 414, 244);
-		add(lblImage);
+		lblImage.setBounds(10, 22, 640, 480);
 		
+		add(lblImage);
 	}
 
 	public void drawImage(BufferedImage bufferedImage) {
-		
         lblImage.setIcon(new ImageIcon(bufferedImage));
-        
 	}
 }

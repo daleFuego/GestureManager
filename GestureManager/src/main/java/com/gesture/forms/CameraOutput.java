@@ -8,14 +8,15 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
+import com.gesture.image.CamStream;
 import com.gesture.utils.Console;
-import com.image.process.CamStream;
 
 @SuppressWarnings("serial")
-public class CameraOutput extends JFrame{
+public class CameraOutput extends JFrame {
 
 	private JScrollPane scrollPaneConsole;
 	private ShowImage panelOrginalImage;
@@ -24,75 +25,90 @@ public class CameraOutput extends JFrame{
 	private JButton btnStart;
 	private JButton btnStop;
 	private JButton btnExit;
-	
+
 	private CamStream camStream;
+	private JPanel panelBtns;
 
 	public CameraOutput() {
 		
-		panelOrginalImage = new ShowImage("Orginal Image");
-		panelOrginalImage.setLocation(7, 11);
-		initialize();
-		panelProcessedImage = new ShowImage("Processed Image");
-		panelProcessedImage.setBounds(448, 11, 434, 277);
-		getContentPane().add(panelProcessedImage);
-		camStream = new CamStream(panelOrginalImage, panelProcessedImage);	
-	}
-
-	private void initialize() {
-
-		//BUTTONS
+		// BUTTONS
 		btnStart = new JButton("Start");
-		btnStart.setBounds(451, 318, 89, 23);
+		btnStart.setBounds(0, 6, 89, 23);
 		btnStop = new JButton("Stop");
-		btnStop.setBounds(451, 341, 89, 23);
+		btnStop.setBounds(0, 35, 89, 23);
 		btnExit = new JButton("Exit");
-		btnExit.setBounds(451, 364, 89, 23);
-		
-		//ACTIONS
-		btnStart.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(ActionEvent e) {
-				camStream.startVideo();
-			}
-		});
-		
-		btnStop.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(ActionEvent e) {
-				camStream.stopVideo();
-			}
-		});
-		
+		btnExit.setBounds(0, 64, 89, 23);
+
 		btnExit.addActionListener(new ActionListener() {
-			
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
 			}
 		});
-		
-		//SCROLLPANE
+
+		btnStop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				camStream.stopVideo();
+			}
+		});
+
+		// ACTIONS
+		btnStart.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {	
+				camStream.startVideo();
+			}
+		});
+
+		// SCROLLPANE
 		scrollPaneConsole = new JScrollPane();
-		scrollPaneConsole.setBounds(10, 21, 414, 96);
+		scrollPaneConsole.setBounds(10, 21, 545, 96);
 		scrollPaneConsole.setViewportView(Console.getInstance());
+
+		// PANEL
+		panelBtns = new JPanel();
+		panelBtns.setLayout(null);
+		panelBtns.setBounds(565, 21, 89, 96);
+		panelBtns.add(btnStart);
+		panelBtns.add(btnStop);
+		panelBtns.add(btnExit);
+		panelOrginalImage = new ShowImage("Result Image");
+		panelOrginalImage.setSize(660, 520);
+		panelOrginalImage.setLocation(10, 2);
+		panelProcessedImage = new ShowImage("Processed Image");
+		panelProcessedImage.setBounds(680, 2, 660, 520);
 		
-		//PANEL
 		panelConsole = new JPanel();
-		panelConsole.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "Console", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		panelConsole.setBounds(7, 297, 434, 128);
+		panelConsole.setBounds(6, 524, 664, 128);
+		panelConsole.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "Console", TitledBorder.LEADING,
+				TitledBorder.TOP, null, null));
 		panelConsole.setLayout(null);
+		panelConsole.add(panelBtns);
 		panelConsole.add(scrollPaneConsole);
-	
-		//FORM
+
+		camStream = new CamStream(panelOrginalImage, panelProcessedImage);
+		
+		initialize();
+	}
+
+	private void initialize() {
+
+		// FORM
 		setVisible(true);
 		setTitle("CAMERA OUTPUT");
-		setBounds(100, 100, 906, 475);
+		setBounds(100, 100, 1366, 693);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		getContentPane().setLayout(null);
-		getContentPane().add(panelConsole);
 		getContentPane().add(panelOrginalImage);
-		getContentPane().add(btnStart);
-		getContentPane().add(btnStop);
-		getContentPane().add(btnExit);
+		getContentPane().add(panelProcessedImage);
+		getContentPane().add(panelConsole);
 		
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
+		}
+	}
+
+	public void doBtnStartClick() {
+		btnStart.doClick();
 	}
 }
