@@ -24,7 +24,7 @@ import org.opencv.imgproc.Moments;
 
 import com.gesture.utils.Console;
 
-public class HandShape {
+public class HandCtrl {
 
 	private SystemCtrl systemCtrl;
 	private HashMap<Point, Scalar> circlesToDraw;
@@ -37,7 +37,7 @@ public class HandShape {
 	private double palmSize;
 	private int biggestID;
 
-	public HandShape() {
+	public HandCtrl() {
 		circlesToDraw = new HashMap<Point, Scalar>();
 		fingertips = new TreeMap<Double, Point>();
 		systemCtrl = new SystemCtrl();
@@ -80,26 +80,26 @@ public class HandShape {
 				}
 
 				if (clickCtrl != null) {
-					systemCtrl.driveCoursor(midPalmCircle.x, midPalmCircle.y);
+//					systemCtrl.driveCoursor(midPalmCircle.x, midPalmCircle.y);
 
 					if (fingertips.size() < 4 && new Random().nextInt(10) > 5 && boundingRect.area() > 40000) {
-						 systemCtrl.doMouseClick();
+//						 systemCtrl.doMouseClick();
 					}
 
 					if (!isPressed && fingertips.size() == 4 && new Random().nextInt(10) > 7
 							&& boundingRect.area() > 40000) {
 						Thread thread = new Thread(new Runnable() {
 							public void run() {
-								 systemCtrl.doMousePress();
+//								 systemCtrl.doMousePress();
 
 								try {
 									Thread.sleep(200);
 								} catch (InterruptedException e) {
 									e.printStackTrace();
-									 systemCtrl.doMouseRelease();
+//									 systemCtrl.doMouseRelease();
 								}
 
-								 systemCtrl.doMouseRelease();
+//								 systemCtrl.doMouseRelease();
 							}
 						});
 

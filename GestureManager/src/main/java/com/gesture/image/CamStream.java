@@ -5,21 +5,21 @@ import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 
 import com.gesture.forms.ShowImage;
-import com.gesture.logic.HandShape;
+import com.gesture.logic.HandCtrl;
 import com.gesture.utils.Console;
 
 public class CamStream {
 
 	private ShowImage panelOrginalImage;
 	private ShowImage panelProcessedImage;
-	private HandShape handShape;
+	private HandCtrl handShape;
 	private Thread thread;
 
 	public CamStream(ShowImage panelOrginalImage, ShowImage panelProcessedImage) {
 		this.panelOrginalImage = panelOrginalImage;
 		this.panelProcessedImage = panelProcessedImage;
 
-		handShape = new HandShape();
+		handShape = new HandCtrl();
 
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
