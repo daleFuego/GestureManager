@@ -49,7 +49,7 @@ public class HandCtrl {
 		isPressed = false;
 	}
 
-	public BufferedImage controlImage(Mat mat) {
+	public BufferedImage manageableImage(Mat mat) {
 		for (Point point : circlesToDraw.keySet()) {
 			Imgproc.circle(mat, point, 15, circlesToDraw.get(point));
 		}
@@ -80,26 +80,26 @@ public class HandCtrl {
 				}
 
 				if (clickCtrl != null) {
-//					systemCtrl.driveCoursor(midPalmCircle.x, midPalmCircle.y);
+					systemCtrl.driveCoursor(midPalmCircle.x, midPalmCircle.y);
 
 					if (fingertips.size() < 4 && new Random().nextInt(10) > 5 && boundingRect.area() > 40000) {
-//						 systemCtrl.doMouseClick();
+						 systemCtrl.doMouseClick();
 					}
 
 					if (!isPressed && fingertips.size() == 4 && new Random().nextInt(10) > 7
 							&& boundingRect.area() > 40000) {
 						Thread thread = new Thread(new Runnable() {
 							public void run() {
-//								 systemCtrl.doMousePress();
+								 systemCtrl.doMousePress();
 
 								try {
 									Thread.sleep(200);
 								} catch (InterruptedException e) {
 									e.printStackTrace();
-//									 systemCtrl.doMouseRelease();
+									 systemCtrl.doMouseRelease();
 								}
 
-//								 systemCtrl.doMouseRelease();
+								 systemCtrl.doMouseRelease();
 							}
 						});
 
@@ -116,7 +116,7 @@ public class HandCtrl {
 		return convertToBGRBufferedImage(mat);
 	}
 
-	public BufferedImage processImage(Mat mat2) {
+	public BufferedImage controlImage(Mat mat2) {
 		Mat mat = mat2.clone();
 		Mat hierarchy = new Mat(mat.rows(), mat.cols(), mat.type());
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
@@ -124,7 +124,7 @@ public class HandCtrl {
 		try {
 			Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2GRAY);
 			Imgproc.GaussianBlur(mat, mat, new Size(11, 11), 0);
-			Imgproc.threshold(mat, mat, 127, 255, Imgproc.THRESH_BINARY);
+			Imgproc.threshold(mat, mat, 127, 255, Imgproc.THRESH_OTSU);
 			Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
 
 			int idx = -1;
@@ -229,6 +229,7 @@ public class HandCtrl {
 				if (isHandDetected(mat)) {
 					isDetected = true;
 
+					drawGravityCircle(mat, contours);
 					Imgproc.rectangle(mat, boundingRect.tl(), boundingRect.br(), new Scalar(255, 0, 0), 2);
 					Imgproc.drawContours(mat, convexHullPoints, biggestID, new Scalar(255, 0, 0));
 				} else {
@@ -294,11 +295,11 @@ public class HandCtrl {
 		return bufferedImage;
 	}
 
-	public boolean drawGravityCircle(Mat mat, List<MatOfPoint> contours) {
+	private boolean drawGravityCircle(Mat mat, List<MatOfPoint> contours) {
 		boolean result = false;
 
 		try {
-			Moments moments = Imgproc.moments(contours.get(0), false);
+			Moments moments = Imgproc.moments(contours.get(biggestID), false);
 
 			double center00 = moments.get_m00();
 			double center10 = moments.get_m10();

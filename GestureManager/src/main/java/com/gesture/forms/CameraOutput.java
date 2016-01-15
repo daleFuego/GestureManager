@@ -19,15 +19,14 @@ import com.gesture.utils.Console;
 public class CameraOutput extends JFrame {
 
 	private JScrollPane scrollPaneConsole;
-	private ShowImage panelOrginalImage;
-	private ShowImage panelProcessedImage;
 	private JPanel panelConsole;
+	private JPanel panelBtns;
 	private JButton btnStart;
 	private JButton btnStop;
 	private JButton btnExit;
-
 	private CamStream camStream;
-	private JPanel panelBtns;
+	private ShowImage panelOrginalImage;
+	private ShowImage panelProcessedImage;
 
 	public CameraOutput() {
 		

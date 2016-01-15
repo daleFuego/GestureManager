@@ -15,7 +15,7 @@ public class Console extends JTextArea {
 		Font f2 = new Font(f.getFontName(), f.getStyle(), f.getSize() + 2);
 		setFont(f2);
 		setBackground(Color.WHITE);
-		setEnabled(false);
+//		setEnabled(false);
 		setForeground(Color.BLACK);
 		setColumns(1);
 	}

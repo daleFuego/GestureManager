@@ -1,7 +1,9 @@
 package com.gesture.image;
 
+import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import com.gesture.forms.ShowImage;
@@ -10,14 +12,14 @@ import com.gesture.utils.Console;
 
 public class CamStream {
 
-	private ShowImage panelOrginalImage;
-	private ShowImage panelProcessedImage;
+	private ShowImage panelManageableImage;
+	private ShowImage panelControlImage;
 	private HandCtrl handShape;
 	private Thread thread;
 
 	public CamStream(ShowImage panelOrginalImage, ShowImage panelProcessedImage) {
-		this.panelOrginalImage = panelOrginalImage;
-		this.panelProcessedImage = panelProcessedImage;
+		this.panelManageableImage = panelOrginalImage;
+		this.panelControlImage = panelProcessedImage;
 
 		handShape = new HandCtrl();
 
@@ -41,8 +43,8 @@ public class CamStream {
 
 					while (true) {
 						if (videoCapture.read(mat)) {
-							panelProcessedImage.drawImage(handShape.processImage(mat));
-							panelOrginalImage.drawImage(handShape.controlImage(mat));
+							panelControlImage.drawImage(handShape.controlImage(mat));
+							panelManageableImage.drawImage(handShape.manageableImage(mat));
 						}
 					}
 				}

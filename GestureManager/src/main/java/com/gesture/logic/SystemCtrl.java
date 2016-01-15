@@ -70,8 +70,8 @@ public class SystemCtrl {
 			}
 
 			board.drawCoursor(new Point(moveOver.x, moveOver.y), WINDOW_SCALER);
-			movingMouseLocation.setLocation(moveOver.x, moveOver.y);
-			robot.mouseMove((int) (movingMouseLocation.getX()), (int) movingMouseLocation.getY());
+//			movingMouseLocation.setLocation(moveOver.x, moveOver.y);
+//			robot.mouseMove((int) (movingMouseLocation.getX()), (int) movingMouseLocation.getY());
 		} catch (Exception e) {
 			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
 		}
@@ -79,31 +79,31 @@ public class SystemCtrl {
 
 	public void doMouseClick() {
 		Console.getInstance().log("Mouse click performed");
-		try {
-			Robot robot = new Robot();
-			robot.mousePress(InputEvent.BUTTON1_MASK);
-			robot.mouseRelease(InputEvent.BUTTON1_MASK);
-		} catch (AWTException e) {
-			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
-		}
+//		try {
+//			Robot robot = new Robot();
+//			robot.mousePress(InputEvent.BUTTON1_MASK);
+//			robot.mouseRelease(InputEvent.BUTTON1_MASK);
+//		} catch (AWTException e) {
+//			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
+//		}
 	}
 
 	public void doMousePress() {
 		Console.getInstance().log("Mouse press performed");
-		try {
-			new Robot().mousePress(InputEvent.BUTTON1_MASK);
-		} catch (AWTException e) {
-			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
-		}
+//		try {
+//			new Robot().mousePress(InputEvent.BUTTON1_MASK);
+//		} catch (AWTException e) {
+//			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
+//		}
 	}
 
 	public void doMouseRelease() {
 		Console.getInstance().log("Mouse release performed");
-		try {
-			new Robot().mouseRelease(InputEvent.BUTTON1_MASK);
-		} catch (AWTException e) {
-			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
-		}
+//		try {
+//			new Robot().mouseRelease(InputEvent.BUTTON1_MASK);
+//		} catch (AWTException e) {
+//			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
+//		}
 	}
 
 }
