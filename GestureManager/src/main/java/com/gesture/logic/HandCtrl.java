@@ -35,7 +35,7 @@ public class HandCtrl {
 	private Scalar SIDE_FINGER;
 	private boolean isDetected, isPressed;
 	private double palmSize;
-	private int biggestID;
+	private int biggestContourId;
 
 	public HandCtrl() {
 		circlesToDraw = new HashMap<Point, Scalar>();
@@ -139,83 +139,72 @@ public class HandCtrl {
 				}
 			}
 
-			biggestID = idx;
+			biggestContourId = idx;
 
-			if (biggestID > -1) {
+			if (biggestContourId > -1) {
 				MatOfInt convexHull = new MatOfInt();
 				MatOfInt4 convexityDefects = new MatOfInt4();
 				MatOfPoint2f approxPolyDP = new MatOfPoint2f();
-				List<Point> contourPoints = new ArrayList<Point>();
+				List<Point> foundConvexBorders = new ArrayList<Point>();
 				List<MatOfPoint> convexHullPoints = new ArrayList<MatOfPoint>();
 
-				approxPolyDP.fromList(contours.get(biggestID).toList());
+				approxPolyDP.fromList(contours.get(biggestContourId).toList());
 				Imgproc.approxPolyDP(approxPolyDP, approxPolyDP, 2, true);
-				contours.get(biggestID).fromList(approxPolyDP.toList());
-				Imgproc.drawContours(mat, contours, biggestID, new Scalar(255, 255, 255), 1);
-				boundingRect = Imgproc.boundingRect(contours.get(biggestID));
-				Imgproc.convexHull(contours.get(biggestID), convexHull, false);
+				contours.get(biggestContourId).fromList(approxPolyDP.toList());
+				Imgproc.drawContours(mat, contours, biggestContourId, new Scalar(255, 255, 255), 1);
+				boundingRect = Imgproc.boundingRect(contours.get(biggestContourId));
+				Imgproc.convexHull(contours.get(biggestContourId), convexHull, false);
 
 				for (int i = 0; i < contours.size(); i++) {
 					convexHullPoints.add(new MatOfPoint());
 				}
 
-				int[] cId = convexHull.toArray();
-				Point[] contourPts = contours.get(biggestID).toArray();
+				int[] convexHullVals = convexHull.toArray();
+				Point[] biggestContourPoints = contours.get(biggestContourId).toArray();
 
-				for (int i = 0; i < cId.length; i++) {
-					contourPoints.add(contourPts[cId[i]]);
+				for (int i = 0; i < convexHullVals.length; i++) {
+					foundConvexBorders.add(biggestContourPoints[convexHullVals[i]]);
 				}
 
-				convexHullPoints.get(biggestID).fromList(contourPoints);
-				contourPoints.clear();
+				convexHullPoints.get(biggestContourId).fromList(foundConvexBorders);
+				foundConvexBorders.clear();
 				fingertips.clear();
 
-				if ((contourPts.length >= 5) && isHandDetected(mat) && (cId.length >= 5)) {
-					Imgproc.convexityDefects(contours.get(biggestID), convexHull, convexityDefects);
-					List<Integer> defects = convexityDefects.toList();
+				if (isHandDetected(mat) && (biggestContourPoints.length > 4) && (convexHullVals.length > 4)) {
+					Imgproc.convexityDefects(contours.get(biggestContourId), convexHull, convexityDefects);
+					List<Integer> interAreas = convexityDefects.toList();
 
-					for (int i = 0; i < defects.size(); i++) {
-						int id = i % 4;
-						Point contourPoint;
-
-						if (id == 2) {
-							double diffDepth = (double) defects.get(i + 1) / 256.0;
-							contourPoint = contourPts[defects.get(i)];
+					for (int i = 0; i < interAreas.size(); i++) {
+						if (i % 4 == 2) {
+							double diffDepth = (double) interAreas.get(i + 1) / 256.0;
 
 							Point tl = boundingRect.tl();
 							Point br = boundingRect.br();
-							Point contourSpat0 = contourPts[defects.get(i - 2)];
-							Point contourSpat1 = contourPts[defects.get(i - 1)];
-
-							Point spat0 = new Point(contourSpat0.x - contourPoint.x, contourSpat0.y - contourPoint.y);
-							Point spat1 = new Point(contourSpat1.x - contourPoint.x, contourSpat1.y - contourPoint.y);
-							double mid = spat0.x * spat1.x + spat0.y * spat1.y;
-							double spat0Lenght = Math.sqrt(spat0.x * spat0.x + spat0.y * spat0.y);
-							double spat1Lenght = Math.sqrt(spat1.x * spat1.x + spat1.y * spat1.y);
-							double angle = mid / (spat0Lenght * spat1Lenght);
-
+							Point defectStartPoint = biggestContourPoints[interAreas.get(i - 2)];
+							Point defectEndPoint = biggestContourPoints[interAreas.get(i - 1)];
+							
 							midPalmCircle = new Point();
 							midPalmCircle.x = tl.x + (br.x - tl.x) / 2;
 							midPalmCircle.y = br.y + (tl.y - br.y) / 2;
 							palmSize = (int) (br.x - tl.x) / 4;
 
-							if ((diffDepth > palmSize * 0.7) && (angle >= -0.7)
-									&& (!isInBounds(contourSpat0, mat))
-									&& (!isInBounds(contourSpat1, mat))) {
+							if ((diffDepth > palmSize * 0.63)
+									&& (!isInBounds(defectStartPoint, mat))
+									&& (!isInBounds(defectEndPoint, mat))) {
 
-								Point finVec0 = new Point(contourSpat0.x - midPalmCircle.x,
-										contourSpat0.y - midPalmCircle.y);
-								double finAngle0 = Math.atan2(finVec0.y, finVec0.x);
-								Point finVec1 = new Point(contourSpat1.x - midPalmCircle.x,
-										contourSpat1.y - midPalmCircle.y);
-								double finAngle1 = Math.atan2(finVec1.y, finVec1.x);
+								Point midStartPoint = new Point(defectStartPoint.x - midPalmCircle.x,
+										defectStartPoint.y - midPalmCircle.y);
+								double startAngle = Math.atan2(midStartPoint.y, midStartPoint.x);
+								Point midEndPoint = new Point(defectEndPoint.x - midPalmCircle.x,
+										defectEndPoint.y - midPalmCircle.y);
+								double endAngle = Math.atan2(midEndPoint.y, midEndPoint.x);
 
 								if (fingertips.size() == 0) {
-									fingertips.put(finAngle0, contourSpat0);
-									fingertips.put(finAngle1, contourSpat1);
+									fingertips.put(startAngle, defectStartPoint);
+									fingertips.put(endAngle, defectEndPoint);
 								} else {
-									fingertips.put(finAngle0, contourSpat0);
-									fingertips.put(finAngle1, contourSpat1);
+									fingertips.put(startAngle, defectStartPoint);
+									fingertips.put(endAngle, defectEndPoint);
 								}
 
 								for (Double val : fingertips.keySet()) {
@@ -231,7 +220,7 @@ public class HandCtrl {
 
 					drawGravityCircle(mat, contours);
 					Imgproc.rectangle(mat, boundingRect.tl(), boundingRect.br(), new Scalar(255, 0, 0), 2);
-					Imgproc.drawContours(mat, convexHullPoints, biggestID, new Scalar(255, 0, 0));
+					Imgproc.drawContours(mat, convexHullPoints, biggestContourId, new Scalar(255, 0, 0));
 				} else {
 					isDetected = false;
 				}
@@ -262,6 +251,7 @@ public class HandCtrl {
 			int midPointY = boundingRect.height;
 
 			if (midPointX > mat.rows() / 3 && midPointY > mat.cols() / 4) {
+				
 				result = true;
 			}
 		}
@@ -299,7 +289,7 @@ public class HandCtrl {
 		boolean result = false;
 
 		try {
-			Moments moments = Imgproc.moments(contours.get(biggestID), false);
+			Moments moments = Imgproc.moments(contours.get(biggestContourId), false);
 
 			double center00 = moments.get_m00();
 			double center10 = moments.get_m10();
