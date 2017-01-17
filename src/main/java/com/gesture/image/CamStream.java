@@ -1,9 +1,7 @@
 package com.gesture.image;
 
-import org.bytedeco.javacpp.opencv_videoio.CvCapture;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import com.gesture.forms.ShowImage;
