@@ -53,7 +53,7 @@ public class SystemCtrl {
 		try {
 			Point moveOver = new Point((int) (top_X - 200) * MOUSE_SCALER, (int) (top_Y - 250) * MOUSE_SCALER);
 			Robot robot = new Robot(device);
-			
+
 			if (!bounds.contains(moveOver)) {
 				if (moveOver.x >= DEVICE_WIDTH - 10) {
 					moveOver.x = DEVICE_WIDTH - 10;
@@ -78,7 +78,6 @@ public class SystemCtrl {
 	}
 
 	public void doMouseClick() {
-		Console.getInstance().log("Mouse click performed");
 		try {
 			Robot robot = new Robot();
 			robot.mousePress(InputEvent.BUTTON1_MASK);
@@ -86,24 +85,6 @@ public class SystemCtrl {
 		} catch (AWTException e) {
 			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
 		}
-	}
-
-	public void doMousePress() {
-		Console.getInstance().log("Mouse press performed");
-//		try {
-//			new Robot().mousePress(InputEvent.BUTTON1_MASK);
-//		} catch (AWTException e) {
-//			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
-//		}
-	}
-
-	public void doMouseRelease() {
-		Console.getInstance().log("Mouse release performed");
-//		try {
-//			new Robot().mouseRelease(InputEvent.BUTTON1_MASK);
-//		} catch (AWTException e) {
-//			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
-//		}
 	}
 
 }

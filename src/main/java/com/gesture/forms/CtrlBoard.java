@@ -28,7 +28,7 @@ public class CtrlBoard extends JFrame {
 		panelBlackBoard = new BlackBoard(width, height);
 
 		getContentPane().add(panelBlackBoard, BorderLayout.CENTER);
-		setBounds(700, 700, width + 10, height + 10);
+		setBounds(700, 700, 570, 432);
 		setResizable(false);
 	}
 

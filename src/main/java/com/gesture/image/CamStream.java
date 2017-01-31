@@ -1,5 +1,8 @@
 package com.gesture.image;
 
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
@@ -15,11 +18,12 @@ public class CamStream {
 	private HandCtrl handShape;
 	private Thread thread;
 
-	public CamStream(ShowImage panelOrginalImage, ShowImage panelProcessedImage) {
+	public CamStream(ShowImage panelOrginalImage, ShowImage panelProcessedImage, JCheckBox chckbxEnableMouseTracking,
+			JCheckBox chckbxMouseClick, JLabel lblHandStatus, JCheckBox chckbxChangeBackground, JLabel lblCoordinates) {
 		this.panelManageableImage = panelOrginalImage;
 		this.panelControlImage = panelProcessedImage;
 
-		handShape = new HandCtrl();
+		handShape = new HandCtrl(chckbxEnableMouseTracking, chckbxMouseClick, lblHandStatus, chckbxChangeBackground, lblCoordinates);
 
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 	}
@@ -30,8 +34,8 @@ public class CamStream {
 			thread = new Thread(new Runnable() {
 				public void run() {
 					Console.getInstance().log("Starting video stream...");
-					
-					VideoCapture videoCapture = new VideoCapture(0);
+
+					VideoCapture videoCapture = new VideoCapture(1);
 					Mat mat = new Mat();
 
 					if (!videoCapture.isOpened()) {

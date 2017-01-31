@@ -1,5 +1,7 @@
 package com.gesture.logic;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
@@ -9,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
+
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfInt;
@@ -33,11 +38,16 @@ public class HandCtrl {
 	private Rect boundingRect;
 	private Scalar TOP_FINGER;
 	private Scalar SIDE_FINGER;
-	private boolean /*isDetected,*/ isPressed;
 	private double palmSize;
 	private int biggestContourId;
+	private JCheckBox chckbxEnableMouseTracking;
+	private JCheckBox chckbxMouseClick;
+	private JLabel lblHandStatus;
+	private JCheckBox chckbxChangeBackground;
+	private JLabel lblCoordinates;
 
-	public HandCtrl() {
+	public HandCtrl(JCheckBox chckbxEnableMouseTracking, JCheckBox chckbxMouseClick, JLabel lblHandStatus,
+			JCheckBox chckbxChangeBackground, JLabel lblCoordinates) {
 		circlesToDraw = new HashMap<Point, Scalar>();
 		fingertips = new TreeMap<Double, Point>();
 		systemCtrl = new SystemCtrl();
@@ -45,20 +55,26 @@ public class HandCtrl {
 		TOP_FINGER = new Scalar(234, 217, 153);
 		SIDE_FINGER = new Scalar(39, 127, 255);
 
-		//isDetected = false;
-		isPressed = false;
+		this.chckbxEnableMouseTracking = chckbxEnableMouseTracking;
+		this.chckbxMouseClick = chckbxMouseClick;
+		this.lblHandStatus = lblHandStatus;
+		this.chckbxChangeBackground = chckbxChangeBackground;
+		this.lblCoordinates = lblCoordinates;
 	}
 
 	public BufferedImage manageableImage(Mat mat) {
 		try {
-		for (Point point : circlesToDraw.keySet()) {
-			Imgproc.circle(mat, point, 15, circlesToDraw.get(point));
-		}
-			if (/*isDetected*/isHandDetected(mat)) {
+			for (Point point : circlesToDraw.keySet()) {
+				Imgproc.circle(mat, point, 15, circlesToDraw.get(point));
+			}
+			if (isHandDetected(mat)) {
 				Point clickCtrl = null;
 				double side_Y = 1000;
 				double side_X = 0;
 				double curY = 0;
+				
+//				double avgX = 0;
+//				double avgY = 0;
 
 				for (Double val : fingertips.keySet()) {
 					curY = fingertips.get(val).y;
@@ -69,49 +85,41 @@ public class HandCtrl {
 					}
 				}
 
-				Console.getInstance().log("curY - side_Y " + (curY - side_Y));
-				if (curY - side_Y == 0) {
+				if (curY - side_Y < 10) {
 					clickCtrl = new Point(side_X, side_Y);
 					Imgproc.circle(mat, new Point(side_X, side_Y), 15, SIDE_FINGER, 2);
+					lblHandStatus.setText("DETECTED");
+					lblHandStatus.setFont(new Font("Verdana", Font.BOLD, 12));
+					lblHandStatus.setForeground(Color.GREEN);
+				} else {
+					lblHandStatus.setText("NOT DETECTED");
+					lblHandStatus.setFont(new Font("Verdana", Font.BOLD, 12));
+					lblHandStatus.setForeground(Color.RED);
 				}
 
 				if (midPalmCircle != null) {
 					Imgproc.circle(mat, midPalmCircle, (int) palmSize / 4, TOP_FINGER, 3);
 				}
 
-				if (clickCtrl != null) {
+				if (clickCtrl != null && chckbxEnableMouseTracking.isSelected()) {
+					lblCoordinates.setText("X = " + midPalmCircle.x + " Y = " + midPalmCircle.y);
+					
+					// DRIVE COURSOR
 					systemCtrl.driveCoursor(midPalmCircle.x, midPalmCircle.y);
-					Console.getInstance().log("Driving cursor coordinates : " + midPalmCircle.x + ", " + midPalmCircle.y);
+//					systemCtrl.driveCoursor(side_X, side_Y);
 
-					if (fingertips.size() < 4 && new Random().nextInt(10) > 5 && boundingRect.area() > 40000) {
-						 systemCtrl.doMouseClick();
-						 Console.getInstance().log("mouse click event fired");
-					}
-
-					if (!isPressed && fingertips.size() == 4 && new Random().nextInt(10) > 7
-							&& boundingRect.area() > 40000) {
-						Thread thread = new Thread(new Runnable() {
-							public void run() {
-								 //systemCtrl.doMousePress();
-								 //Console.getInstance().log("mouse pressed event fired");
-
-								try {
-									Thread.sleep(200);
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-									 //systemCtrl.doMouseRelease();
-								}
-
-								 //systemCtrl.doMouseRelease();
-							}
-						});
-
-						thread.start();
+					System.out.println(fingertips.size());
+					if (fingertips.size() > 5 && new Random().nextInt(10) > 7/* && boundingRect.area() > 40000*/) {
+						if (chckbxMouseClick.isSelected()) {
+							
+							// CLICk COURSOR
+							systemCtrl.doMouseClick();
+						}
+						 
+						Console.getInstance().log("Mouse click event fired !");
 					}
 				}
 			}
-			else {Console.getInstance().log ("No hand detected");}
-			
 		} catch (Exception e) {
 			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
 		}
@@ -129,8 +137,15 @@ public class HandCtrl {
 		try {
 			Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGB2GRAY);
 			Imgproc.GaussianBlur(mat, mat, new Size(11, 11), 0);
-			Imgproc.threshold(mat, mat, 127, 255, Imgproc.THRESH_OTSU);
-			Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+
+			if (chckbxChangeBackground.isSelected()) {
+				chckbxChangeBackground.setText("Black background");
+				Imgproc.threshold(mat, mat, 127, 255, Imgproc.THRESH_BINARY_INV);
+			} else {
+				chckbxChangeBackground.setText("White background");
+				Imgproc.threshold(mat, mat, 127, 255, Imgproc.THRESH_OTSU);
+			}
+			Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
 			int idx = -1;
 			int cNum = 0;
@@ -154,7 +169,7 @@ public class HandCtrl {
 				List<MatOfPoint> convexHullPoints = new ArrayList<MatOfPoint>();
 
 				approxPolyDP.fromList(contours.get(biggestContourId).toList());
-				Imgproc.approxPolyDP(approxPolyDP, approxPolyDP, 2, true);
+				Imgproc.approxPolyDP(approxPolyDP, approxPolyDP, 10, true);
 				contours.get(biggestContourId).fromList(approxPolyDP.toList());
 				Imgproc.drawContours(mat, contours, biggestContourId, new Scalar(255, 255, 255), 1);
 				boundingRect = Imgproc.boundingRect(contours.get(biggestContourId));
@@ -175,7 +190,7 @@ public class HandCtrl {
 				foundConvexBorders.clear();
 				fingertips.clear();
 
-				if (isHandDetected(mat) && (biggestContourPoints.length > 4) && (convexHullVals.length > 4)) {
+				if (isHandDetected(mat) && (biggestContourPoints.length > 4 && biggestContourPoints.length < 30) && (convexHullVals.length > 4)) {
 					Imgproc.convexityDefects(contours.get(biggestContourId), convexHull, convexityDefects);
 					List<Integer> interAreas = convexityDefects.toList();
 
@@ -187,14 +202,13 @@ public class HandCtrl {
 							Point br = boundingRect.br();
 							Point defectStartPoint = biggestContourPoints[interAreas.get(i - 2)];
 							Point defectEndPoint = biggestContourPoints[interAreas.get(i - 1)];
-							
+
 							midPalmCircle = new Point();
 							midPalmCircle.x = tl.x + (br.x - tl.x) / 2;
 							midPalmCircle.y = br.y + (tl.y - br.y) / 2;
 							palmSize = (int) (br.x - tl.x) / 4;
 
-							if ((diffDepth > palmSize * 0.63)
-									&& (!isInBounds(defectStartPoint, mat))
+							if ((diffDepth > palmSize * 0.63) && (!isInBounds(defectStartPoint, mat))
 									&& (!isInBounds(defectEndPoint, mat))) {
 
 								Point midStartPoint = new Point(defectStartPoint.x - midPalmCircle.x,
@@ -221,15 +235,10 @@ public class HandCtrl {
 				}
 
 				if (isHandDetected(mat)) {
-					//isDetected = true;
-
 					drawGravityCircle(mat, contours);
 					Imgproc.rectangle(mat, boundingRect.tl(), boundingRect.br(), new Scalar(255, 0, 0), 2);
 					Imgproc.drawContours(mat, convexHullPoints, biggestContourId, new Scalar(255, 0, 0));
 				}
-				//} else {
-					//isDetected = false;
-				//}
 			}
 		} catch (Exception e) {
 			Console.getInstance().log(this.getClass().getSimpleName() + " err: " + e.getMessage());
@@ -241,8 +250,9 @@ public class HandCtrl {
 	private boolean isInBounds(Point point, Mat mat) {
 		int margin = 10;
 		boolean result = true;
-		
-		if ((point.x > margin) && (point.y > margin) && (point.x < mat.cols() - margin) && (point.y < mat.rows() - margin)) {
+
+		if ((point.x > margin) && (point.y > margin) && (point.x < mat.cols() - margin)
+				&& (point.y < mat.rows() - margin)) {
 			result = false;
 		}
 
@@ -256,14 +266,11 @@ public class HandCtrl {
 			int midPointX = boundingRect.width;
 			int midPointY = boundingRect.height;
 
-			Console.getInstance().log("midPointX > mat.rows() / 3 " + (midPointX > mat.rows() / 3));
-			Console.getInstance().log("bmidPointY > mat.cols() / 4 " + (midPointY > mat.cols() / 4));
-			if (midPointX > mat.rows() / 3 && midPointY > mat.cols() / 4) {	
+			if (midPointX > mat.rows() / 3 && midPointY > mat.cols() / 4) {
 				result = true;
 			}
 		}
 
-		Console.getInstance().log("is hand detected ? " + result);
 		return result;
 	}
 
